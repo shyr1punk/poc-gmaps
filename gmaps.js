@@ -75,8 +75,8 @@ $(window).load(function() {
     }
     function calcRoute() {
         var request = {
-            origin: $("#routeTo").val(),
-            destination: $("#routeFrom").val(),
+            origin: $("#routeFrom").val(),
+            destination: $("#routeTo").val(),
             travelMode: google.maps.TravelMode[$("#routeMode").val()]
         };
         directionsService.route(request, function(response, status) {
