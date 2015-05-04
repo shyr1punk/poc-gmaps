@@ -1,8 +1,9 @@
 var directionsDisplay = new google.maps.DirectionsRenderer({ draggable: true });
 var directionsService = new google.maps.DirectionsService();
 var map;
-
+var marker;
 $(window).load(function() {
+    var marker;
     var myOptions = {
         zoom: 10,
         mapTypeId: google.maps.MapTypeId.ROADMAP,
@@ -21,14 +22,33 @@ $(window).load(function() {
         navigator.geolocation.getCurrentPosition(function(position) {
             var pos = new google.maps.LatLng(position.coords.latitude,
                 position.coords.longitude);
+            var geocoder = new google.maps.Geocoder();
+            geocoder.geocode({'latLng': pos}, function(results, status) {
+                if (status == google.maps.GeocoderStatus.OK) {
+                    if (results[1]) {
+                        map.setZoom(11);
+                        marker = new google.maps.Marker({
+                            position: pos,
+                            map: map
+                        });
+                        //infowindow.setContent(results[1].formatted_address);
+                        //infowindow.open(map, marker);
+                        map.setCenter(pos);
+                        $("#routeFrom").val(results[0].formatted_address);
+                        console.log(results);
+                    }
+                } else {
+                    alert("Geocoder failed due to: " + status);
+                }
+            });
 
-            var infowindow = new google.maps.InfoWindow({
+            /*var infowindow = new google.maps.InfoWindow({
                 map: map,
                 position: pos,
                 content: 'Location found using HTML5.'
             });
 
-            map.setCenter(pos);
+            map.setCenter(pos);*/
         }, function() {
             handleNoGeolocation(true);
         });
@@ -53,19 +73,19 @@ $(window).load(function() {
         var infowindow = new google.maps.InfoWindow(options);
         map.setCenter(options.position);
     }
-
+    function calcRoute() {
+        var request = {
+            origin: $("#routeTo").val(),
+            destination: $("#routeFrom").val(),
+            travelMode: google.maps.TravelMode[$("#routeMode").val()]
+        };
+        directionsService.route(request, function(response, status) {
+            if (status == google.maps.DirectionsStatus.OK) {
+                directionsDisplay.setDirections(response);
+                marker.setMap(null);
+            }
+        });
+    }
 });
 
 
-function calcRoute() {
-    var request = {
-        origin: $("#routeTo").val(),
-        destination: $("#routeFrom").val(),
-        travelMode: google.maps.TravelMode[$("#routeMode").val()]
-    };
-    directionsService.route(request, function(response, status) {
-        if (status == google.maps.DirectionsStatus.OK) {
-            directionsDisplay.setDirections(response);
-        }
-    });
-}
